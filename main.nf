@@ -55,10 +55,18 @@ process merge_groups {
     script:
         group = datasets.join('-')
         vcf_out = "${group}.vcf.gz"
-        """
-        bcftools merge ${vcfs.join(' ')} |\
-        bcftools sort  -Oz -o ${vcf_out}
-        """
+        if(datasets.siez() > 1){
+            """
+            bcftools merge ${vcfs.join(' ')} |\
+            bcftools sort -Oz -o ${vcf_out}
+            """
+        }
+        else{
+            """
+            bcftools sort ${vcfs.join(' ')} -Oz -o ${vcf_out}
+            """
+        }
+        
 }
 
 process get_vcf_site {
