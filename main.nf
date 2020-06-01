@@ -188,5 +188,3 @@ workflow{
     annotate(preprocess.out.vcf_sites.combine(mafs)).view()
     postprocess( annotate.out.annotated_vcfs.groupTuple().map{ it -> [ it[0], [it[0]], it[1] ] }.view() )
 }
-
-
