@@ -1,3 +1,1 @@
-ACB      ,../data/popfreqs/ACB_1-22_MAF.frq       ,African Caribbeans in Barbados from 1000 Genomes project
-# KG     ,../data/popfreqs/pop_mafs/KG.chr%s.mafs ,KG
-# gnomAD ,../data/popfreqs/pop_mafs/gnomAD.mafs   ,gnomAD
+ACB      ,https://github.com/h3abionet/popfreqs/raw/master/data/ACB_1-22_MAF.frq       ,African Caribbeans in Barbados from 1000 Genomes project
