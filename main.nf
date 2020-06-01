@@ -8,22 +8,6 @@ def check_files(file_list) {
     }
 }
 
-process get_pops {
-    tag "get_pop_${dataset}"
-
-    input:
-        tuple dataset, file(sample)
-
-    output:
-        tuple dataset, file(pops)
-
-    script:
-        pops = "${sample.baseName}_pops.csv"
-        """
-        cat ${sample} | grep -v "^#" | awk -F' ' '{print \$2}' | sort -n | uniq > ${pops}
-        """
-}
-
 process sites_only {
     tag "sites_only_${dataset}_${chrm}"
     label "bigmem"
@@ -183,36 +167,16 @@ workflow postprocess {
 
 workflow{
     datasets_all = []
-    datasets_samples = []
-    params.datasets.each { name, vcf_, sample ->
-        check_files([sample])
-        datasets_samples << [name, file(sample)]
+    params.datasets.each { name, vcf_ ->
         params.chromosomes.each { chrm ->
             vcf = sprintf(vcf_, chrm)
             check_files([vcf])
-            datasets_all << [name, file(vcf), file(sample), chrm]
+            datasets_all << [name, file(vcf), chrm]
         }
     }
-    samples = Channel.from(datasets_samples)
-    split_data_pop(samples)
 
-    split_data_pop.out.pops.flatMap{ dataset, pops ->
-        data_pop = []
-        dataset_pops = file(pops).readLines().unique().sort()
-        dataset_pops.each { pop ->
-            if ('ALL' in params.POPS) {
-                data_pop << [dataset, pop]
-            }
-            else if (pop in params.POPS) {
-                data_pop << [dataset, pop]
-            }
-        }
-        return data_pop
-    }
-
-    datasets_all_cha = Channel.from(datasets_all).map{ it -> [ it[0], it[1], it[3] ] }
+    datasets_all_cha = Channel.from(datasets_all)
     preprocess(datasets_all_cha)
-    // Channel.fromPath("/scratch/users/mamana/popfreqs/**/*_1-22_MAF.frq").view()
     mafs = Channel
         .from(file(params.mafs_annotations))
         .splitCsv(strip: true, sep: ',')
@@ -224,120 +188,5 @@ workflow{
     annotate(preprocess.out.vcf_sites.combine(mafs)).view()
     postprocess( annotate.out.annotated_vcfs.groupTuple().map{ it -> [ it[0], [it[0]], it[1] ] }.view() )
 }
-
-
-// /*
-//  * STEP 2 - Get in populations in sample file
-//  */
-
-
-
-// datasets_pops_all = Channel.from(datasets_all).combine(datasets_pops, by:[0])
-// /*
-//  * STEP 2 - Split in populations
-//  */
-// process split_population {
-//     tag "split_population_${dataset}_${pop}_${chrm}"
-//     label "bigmem"
-
-//     input:
-//     set dataset, file(dataset_vcf), file(dataset_sample), chrm, pop from datasets_pops_all
-
-//     output:
-//     set dataset, file(dataset_vcf), file(dataset_sample), chrm, pop, file(pop_vcf) into split_population
-
-//     script:
-//     pop_vcf = "${pop}_${dataset}_${chrm}.vcf.gz"
-//     """
-//     grep ${pop} ${dataset_sample} | cut -f1 > ${pop}.samples
-//     ## Keep only samples for population and Recalculate AC, AN, AF
-//     bcftools view \
-//         --samples-file ${pop}.samples \
-//         ${dataset_vcf} | \
-//     bcftools +fill-tags -- -t MAF| \
-//     bcftools annotate \
-//         --set-id '%CHROM\\_%POS\\_%REF\\_%ALT' | \
-//         bgzip -c > ${pop_vcf}
-//     """
-// }
-
-// /*
-//  * STEP - Get population frequencies
-//  */
-// process pop_freq {
-//     tag "pop_freq_${dataset}_${pop}_${chrm}"
-//     publishDir "${params.outdir}/${pop}", mode: 'copy'
-//     label "bigmem"
-
-//     input:
-//     set dataset, file(dataset_vcf), file(dataset_sample), chrm, pop, file(pop_vcf) from split_population
-
-//     output:
-//     set pop, chrm, file(pop_maf) into pop_freq
-
-//     script:
-//     pop_maf = "${pop}_${dataset}_${chrm}_MAF.frq"
-//     """
-//     ## Compute frequency
-//     echo "rsID\tREF\tALT\t${pop}_MAF_FREQ" > ${pop_maf}
-//     bcftools query \
-//         -f '%ID\\t%REF\\t%ALT\\t%INFO/MAF\\n' \
-//         ${pop_vcf} >> ${pop_maf}
-//     """
-// }
-
-// /*
-//  * STEP - Get population frequencies
-//  */
-// process combine_pop_freq {
-//     tag "combine_pop_freq_${pop}"
-//     publishDir "${params.outdir}/${pop}", mode: 'copy'
-//     label "bigmem"
-
-//     input:
-//     set pop, chrm, pop_mafs from pop_freq.groupTuple(by: 0)
-
-//     output:
-//     set pop, file(pop_maf) into combine_pop_freq
-
-//     script:
-//     chrm = chrm.sort()
-//     if (chrm.size() > 1){
-//         chrms = "${chrm[0]}-${chrm[-1]}"
-//     }
-//     else{
-//         chrms = chrm[0]
-//     }
-//     pop_maf = "${pop}_${chrms}_MAF.frq"
-//     """
-//     head -n1 ${pop_mafs[0]} > ${pop_maf}
-//     tail -q -n +2 ${pop_mafs.join(' ')} >> ${pop_maf}
-//     """
-// }
-
-// combine_pop_freq_data = combine_pop_freq.toSortedList( { a, b -> a[0] <=> b[0] } ).val
-
-// report_data = []
-// combine_pop_freq_data.each { data ->
-//     report_data << data[1]
-// }
-
-
-// // process report_freq {
-// //     tag "report_freq"
-// //     publishDir "${params.outdir}/report_frqs", mode: 'copy'
-// //     label "bigmem"
-
-// //     input:
-// //     val(pop_freqs) from report_data.join(' ')
-
-// //     output:
-// //     file(report_maf) into report_freq
-
-// //     script:
-// //     report_maf = "H3Africa_pops_MAF.frq"
-// //     template "report_freq.py"
-// // }
-
 
 
