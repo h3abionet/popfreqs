@@ -55,7 +55,7 @@ process merge_groups {
     script:
         group = datasets.join('-')
         vcf_out = "${group}.vcf.gz"
-        if(datasets.siez() > 1){
+        if(datasets.size() > 1){
             """
             bcftools merge ${vcfs.join(' ')} |\
             bcftools sort -Oz -o ${vcf_out}
