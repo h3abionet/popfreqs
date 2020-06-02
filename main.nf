@@ -188,11 +188,18 @@ workflow{
     mafs = Channel
         .from(file(params.mafs_annotations))
         .splitCsv(strip: true, sep: ',')
-        .map{ it ->
+        .flatMap{ it ->
+            freq_file = it[1]
             if ( it[0][0] != '#'){
-                return it
+                if ( file(freq_file).exists() ){
+                    return [it]
+                }
+                else{
+                    System.err.println "|-- ERROR: Frequency file ${freq_file} not found. Please check \"mafs_annotations\" parameter in your config file."
+                    exit 1
+                }
             }
         }
-    annotate(preprocess.out.vcf_sites.combine(mafs)).view()
-    postprocess( annotate.out.annotated_vcfs.groupTuple().map{ it -> [ it[0], [it[0]], it[1] ] }.view() )
+    annotate(preprocess.out.vcf_sites.combine(mafs))
+    postprocess( annotate.out.annotated_vcfs.groupTuple().map{ it -> [ it[0], [it[0]], it[1] ] } )
 }
