@@ -1,4 +1,4 @@
-# H3Africa Population frequencies
+# H3Africa forked Population frequencies
 
 **Frequencies of populations in H3Africa**.
 
