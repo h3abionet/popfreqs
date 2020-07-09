@@ -200,6 +200,7 @@ workflow{
                 }
             }
         }
+    // Annotate VCF
     annotate(preprocess.out.vcf_sites.combine(mafs))
     postprocess( annotate.out.annotated_vcfs.groupTuple().map{ it -> [ it[0], [it[0]], it[1] ] } )
 }
