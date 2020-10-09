@@ -28,7 +28,7 @@ process get_maf {
  */
 process combine_csv {
     tag "combine_csv_${pop}_${dataset}_${chrms_}"
-    publishDir "${params.outDir}", overwrite: true, mode:'copy'
+    publishDir "${params.outdir}", overwrite: true, mode:'copy'
     label "bigmem"
 
     input:
