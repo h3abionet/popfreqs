@@ -9,7 +9,7 @@ process get_maf {
     label "bigmem"
 
     input:
-        tuple pop, dataset, file(pop_vcf), chrm
+        tuple pop, dataset, file(pop_vcf), chrm, info_tag
 
     output:
         tuple pop, dataset,  file(pop_maf), chrm
@@ -19,7 +19,7 @@ process get_maf {
         """
         ## Compute frequency
         echo "ID\t${pop}_MAF" > ${pop_maf}
-        bcftools query -f '%ID\\t%INFO/MAF\\n' ${pop_vcf} >> ${pop_maf}
+        bcftools query -f '%CHROM\\_%POS\\_%REF\\_%ALT\\t%${info_tag}\\n' ${pop_vcf} >> ${pop_maf}
         """
 }
 

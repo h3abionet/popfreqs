@@ -81,8 +81,9 @@ process split_population {
         """
         awk '\$2=="${pop}" {print \$1}' ${dataset_sample} > ${pop}.samples
         ## Keep only samples for population and Recalculate AC, AN, AF
-        bcftools view --samples-file ${pop}.samples ${dataset_vcf} | \
+        bcftools view --samples-file ${pop}.samples --force-samples ${dataset_vcf} | \
         bcftools +fill-tags -- -t AC,AN,AF,MAF | \
-        bcftools annotate --set-id '%CHROM\\_%POS\\_%REF\\_%ALT' -Oz -o ${pop_vcf}
+        bcftools annotate --set-id '%CHROM\\_%POS\\_%REF\\_%ALT' | \
+        bcftools view --drop-genotypes -Oz -o ${pop_vcf}
         """
 }

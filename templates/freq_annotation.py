@@ -25,17 +25,17 @@ def readTSV(inTSV, sites='', outAnnot='', outHdr='', annot=''):
     
     base = pd.read_csv(sites, sep='\\\\s+', engine='python', error_bad_lines=False)
     data = pd.read_csv(inTSV, sep='\\\\s+', engine='python', error_bad_lines=False)
-    base = pd.merge(base, data, on='rsID', how='left')
+    base = pd.merge(base, data, on='ID', how='left')
     base = base.replace(np.nan, '0.0', regex=True)
     base = base.replace('.', '0.0')
 
     datas = base.to_dict()  # Transform to dict
     new_datas = {}
     for col in datas:
-        if '_MAF_FREQ' in col or 'rsID' in col:
+        if '_MAF' in col or 'ID' in col:
             new_datas[col] = {}
             for idx in datas[col]:
-                if '_MAF_FREQ' in col:
+                if '_MAF' in col:
                     frq = str(datas[col][idx]).strip().split(',')[0]
                     if frq == '.':
                         frq = '0.0'
@@ -44,14 +44,14 @@ def readTSV(inTSV, sites='', outAnnot='', outHdr='', annot=''):
                     except:
                         print(frq)
                     new_datas[col][idx] = format(frq, '.5f')
-                if 'rsID' in col:
+                if 'ID' in col:
                     new_datas[col][idx] = datas[col][idx]
                     
     base = pd.DataFrame.from_dict(new_datas)
 
-    chrom = base['rsID'].str.split('_').str[0]
-    pos = base['rsID'].str.split('_').str[1]
-    base = base.drop(columns=['rsID'])
+    chrom = base['ID'].str.split('_').str[0]
+    pos = base['ID'].str.split('_').str[1]
+    base = base.drop(columns=['ID'])
     base.insert(0, 'POS', pos, allow_duplicates=True)
     base.insert(0, 'POS', pos, allow_duplicates=True)
     base.insert(0, 'CHROM', chrom)
@@ -61,7 +61,7 @@ def readTSV(inTSV, sites='', outAnnot='', outHdr='', annot=''):
 
     info = pd.DataFrame([], columns=['info'])
     for col in base.columns:
-        if '_MAF_FREQ' in col:
+        if '_MAF' in col:
             info = info.append({'info': "##INFO=<ID={},Number=1,Type=Float,Description=\"{}\">".format(col, annot)}, ignore_index=True)
 
     #  Writing header

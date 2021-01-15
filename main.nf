@@ -44,26 +44,25 @@ process concat_dataset {
 }
 
 process merge_groups {
-    tag "merge_groups_${group}"
-    label "bigmem"
+    tag "merge_groups_${group}_${prefix}"
+    label "largemem"
     publishDir "${params.outdir}/${group}", mode: 'copy'
 
     input:
-        tuple dataset, datasets, vcfs
+        tuple dataset, datasets, vcfs, prefix
     output:
         tuple group, file(vcf_out)
     script:
-        group = datasets.join('-')
-        vcf_out = "${group}.vcf.gz"
-        if(datasets.size() > 1){
+        vcf_out = "${prefix}.vcf.gz"
+        if(vcfs.size() > 1){
             """
             bcftools merge ${vcfs.join(' ')} |\
-            bcftools sort -Oz -o ${vcf_out}
+            bcftools sort -T . -Oz -o ${vcf_out}
             """
         }
         else{
             """
-            bcftools sort ${vcfs.join(' ')} -Oz -o ${vcf_out}
+            bcftools sort ${vcfs.join(' ')} -T . -Oz -o ${vcf_out}
             """
         }
         
@@ -83,7 +82,7 @@ process get_vcf_site {
         base = file(vcf.baseName).baseName
         vcf_sites = "${base}.sites"
         """
-        echo -e 'rsID' > ${vcf_sites}
+        echo -e 'ID' > ${vcf_sites}
         bcftools query -f "%CHROM\\_%POS\\_%REF\\_%ALT\\n" ${vcf} >> ${vcf_sites}
         """
 }
@@ -147,7 +146,7 @@ workflow preprocess {
     main:
         sites_only(data)
         concat_dataset(sites_only.out.map{ it -> [ it[0], it[1] ]}.groupTuple(by:0))
-        merge_groups(concat_dataset.out.map{ dataset, vcf -> [ 'GROUP', dataset, file(vcf) ] }.groupTuple(by:0))
+        merge_groups(concat_dataset.out.map{ dataset, vcf -> [ 'GROUP', dataset, file(vcf) ] }.groupTuple(by:0).map{ dataset, datasets, vcfs -> [ dataset, datasets, vcfs, dataset ]})
         get_vcf_site(merge_groups.out)
     emit:
         vcf_sites = get_vcf_site.out
@@ -167,7 +166,7 @@ workflow postprocess {
     take:
         data
     main:
-        merge_groups(data)
+        merge_groups(data.map{ dataset, datasets, vcfs -> [ dataset, datasets, vcfs, params.prefix ]})
     emit:
         merged_vcfs = merge_groups.out
 }
