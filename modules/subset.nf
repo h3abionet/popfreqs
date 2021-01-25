@@ -47,7 +47,7 @@ process get_pops {
 
 process fill_tags_VCF {
     tag "fill_tags_${dataset}_${chrm}"
-    label "bigmem"
+    label "hugemem"
 
     input:
         tuple dataset, file(vcf), file(sample), chrm
@@ -69,6 +69,7 @@ process fill_tags_VCF {
 process split_population {
     tag "split_pop_${dataset}_${pop}_${chrm}"
     label "bigmem"
+    // errorStrategy 'ignore'
 
     input:
         tuple dataset, pop, file(dataset_vcf), file(dataset_sample), chrm
