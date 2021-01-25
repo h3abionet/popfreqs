@@ -44,14 +44,14 @@ process concat_dataset {
 }
 
 process merge_groups {
-    tag "merge_groups_${group}_${prefix}"
+    tag "merge_groups_${dataset}_${prefix}"
     label "largemem"
-    publishDir "${params.outdir}/${group}", mode: 'copy'
+    publishDir "${params.outdir}/${dataset}", mode: 'copy'
 
     input:
         tuple dataset, datasets, vcfs, prefix
     output:
-        tuple group, file(vcf_out)
+        tuple dataset, file(vcf_out)
     script:
         vcf_out = "${prefix}.vcf.gz"
         if(vcfs.size() > 1){
@@ -166,7 +166,8 @@ workflow postprocess {
     take:
         data
     main:
-        merge_groups(data.map{ dataset, datasets, vcfs -> [ dataset, datasets, vcfs, params.prefix ]})
+        merge_groups(data.map{ dataset, datasets, vcfs -> [ dataset, datasets, vcfs, params.out_prefix ]})
+        
     emit:
         merged_vcfs = merge_groups.out
 }
