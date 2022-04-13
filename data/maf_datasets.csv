@@ -1,0 +1,3 @@
+## name, description, annotation_file, header_file
+#gnomAD_b37, Allele frequency from gnomAD, /cbio/projects/001/clients/population_allele_freqs/freqs/GNOMAD/GNOMAD_GNOMAD_*_maf.csv, /cbio/projects/001/clients/population_allele_freqs/freqs/GNOMAD/GNOMAD_GNOMAD_22_maf.hdr
+TEST, Allele frequency from gnomAD, /cbio/projects/001/clients/population_allele_freqs/freqs/TEST/TEST_TEST_22_annots.csv, /cbio/projects/001/clients/population_allele_freqs/freqs/TEST/TEST_TEST_annots.hdr

@@ -7,13 +7,11 @@
 #SBATCH --mail-user=mbymam001@myuct.ac.za
 #SBATCH --mail-type=BEGIN,END,FAIL
 
-OUTDIR="/scratch3/users/mamana/popfreq/generate_af"
+OUTDIR="/scratch3/users/mamana/popfreq_test"
 mkdir -p ${OUTDIR}
 cd ${OUTDIR}
 
-nextflow run /users/mamana/popfreqs/generate_freq.nf \
-    -c /users/mamana/popfreqs/conf/test1.config \
+nextflow run /users/mamana/popfreqs/parse_manifests.nf \
+    -c /users/mamana/popfreqs/conf/parse_manifests.config \
     -profile slurm,singularity \
     -resume 
-
-# nextflow run h3abionet/popfreqs/generate_freq.nf -resume -profile slurm,singularity,test1
