@@ -30,12 +30,12 @@ workflow{
     // //// Generate BED from manifest
     parse_manifests(manifests)
 
-    // //// Generate VCF from BED
-    check_files([params.human_genome])
-    beds = parse_manifests.out.map{ manifest, manifest_annots, manifest_hdr, manifest_bed -> [ manifest, file(manifest_bed), file(params.human_genome) ] }
-    generate_vcf_from_bed( beds )
-    // vcqfs = generate_vcf_from_bed.out.map{ manifest, manifest_vcf -> [ manifest, '', file(manifest_vcf) ]}
-    // // snpeff_vcf( vcfs ).view()
+    if(generate_vcf == true){
+        // //// Generate VCF from BED
+        check_files([params.human_genome])
+        beds = parse_manifests.out.map{ manifest, manifest_annots, manifest_hdr, manifest_bed -> [ manifest, file(manifest_bed), file(params.human_genome) ] }
+        generate_vcf_from_bed( beds )
+    }
 
     println "Cuurent folder: ${PWD}, Output folder: ${params.outdir}"
 }
